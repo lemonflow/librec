@@ -24,8 +24,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Table;
 
 import librec.baseline.ConstantGuess;
 import librec.baseline.GlobalAverage;
@@ -85,19 +89,12 @@ import librec.rating.TrustSVD;
 import librec.rating.URP;
 import librec.rating.UserKNN;
 import librec.util.Dates;
-import librec.util.EMailer;
 import librec.util.FileConfiger;
 import librec.util.FileIO;
 import librec.util.LineConfiger;
 import librec.util.Logs;
 import librec.util.Randoms;
 import librec.util.Strings;
-import librec.util.Systems;
-
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
 
 /**
  * Main Class of the LibRec Library
@@ -154,7 +151,7 @@ public class LibRec {
 		FileIO.copyFile("results.txt", results);
 
 		// send notification
-		notifyMe(results);
+//		notifyMe(results);
 	}
 
 	/**
@@ -642,50 +639,6 @@ public class LibRec {
 			FileIO.writeString(filePath, evalInfo, true);
 			Logs.debug("Results have been collected to file: {}", filePath);
 		}
-	}
-
-	/**
-	 * Send a notification of completeness
-	 * 
-	 * @param attachment
-	 *            email attachment
-	 */
-	protected void notifyMe(String attachment) throws Exception {
-
-		String hostInfo = FileIO.getCurrentFolder() + "." + algorithm + " [" + Systems.getIP() + "]";
-
-		LineConfiger emailOptions = cf.getParamOptions("email.setup");
-
-		if (emailOptions == null || !emailOptions.isMainOn()) {
-			System.out.println("Program " + hostInfo + " has completed!");
-			return;
-		}
-
-		EMailer notifier = new EMailer();
-		Properties props = notifier.getProps();
-
-		props.setProperty("mail.debug", "false");
-
-		String port = emailOptions.getString("-port");
-		props.setProperty("mail.smtp.host", emailOptions.getString("-host"));
-		props.setProperty("mail.smtp.port", port);
-		props.setProperty("mail.smtp.auth", emailOptions.getString("-auth"));
-
-		props.put("mail.smtp.socketFactory.port", port);
-		props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-
-		final String user = emailOptions.getString("-user");
-		props.setProperty("mail.smtp.user", user);
-		props.setProperty("mail.smtp.password", emailOptions.getString("-password"));
-
-		props.setProperty("mail.from", user);
-		props.setProperty("mail.to", emailOptions.getString("-to"));
-
-		props.setProperty("mail.subject", hostInfo);
-		props.setProperty("mail.text", "Program was completed @" + Dates.now());
-
-		String msg = "Program [" + algorithm + "] has completed !";
-		notifier.send(msg, attachment);
 	}
 
 	/**
